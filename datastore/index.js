@@ -41,6 +41,9 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
+  //create an array from the dataDir
+  //iterate over the dataDir array to find the file id we're looking for
+  //read the contents of that file
   var text = items[id];
   if (!text) {
     callback(new Error(`No item with id: ${id}`));
