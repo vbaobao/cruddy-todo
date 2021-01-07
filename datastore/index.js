@@ -41,15 +41,37 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-  //create an array from the dataDir
-  //iterate over the dataDir array to find the file id we're looking for
-  //read the contents of that file
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  //create an array of file objects from the dataDir
+  let dataDirString = this.dataDir;
+  fs.readdir(this.dataDir, function(err, files) {
+    if (err) {
+      console.log('Unable to read file directory');
+    } else {
+      var data = _.map(files, (id) => { 
+        let newId = id.slice(0, -4);
+        return newId;
+      });
+      //iterate over the dataDir array to find the file id we're looking for
+      //read the contents of that file and return it
+      for (const fileId of data) {
+        if (fileId === id) {
+          let currentFile = path.join(dataDirString, `${id}.txt`);
+          fs.readFile(currentFile, 'utf8', (err, fileData) => {
+            console.log(fileData);
+            if (err) {
+              return console.log(`File ${id}.txt could not be read`);
+            }
+            let fileObj = {'id': id, 'text': fileData};
+            console.log(fileObj);
+            callback(null, fileObj);
+            return fileObj.text;
+          });
+        }
+      }
+      // If id does not exist, then:
+      callback(new Error(`No item with id: ${id}`));
+    }
+  });
 };
 
 exports.update = (id, text, callback) => {
