@@ -69,7 +69,9 @@ exports.update = (id, text, callback) => {
         callback(err, 'Couldn\'t write file');
         return;
       }
-      callback(null, text);
+      callback(null, { 
+        'id': id,
+        'text': text });
     });
   });
 };
