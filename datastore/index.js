@@ -54,13 +54,24 @@ exports.readOne = (id, callback) => {
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  //create filepath
+  let currentFile = path.join(this.dataDir, `${id}.txt`);
+  //read file to check if the file exists
+  fs.readFile(currentFile, 'utf8', (err, fileData) => {
+    //within callback:
+    if (err) {
+      callback(err, `No file with id: ${id}`);
+      return;
+    }
+    //overwrite the file with the updates
+    fs.writeFile(currentFile, text, (err) => {
+      if (err) {
+        callback(err, 'Couldn\'t write file');
+        return;
+      }
+      callback(null, text);
+    });
+  });
 };
 
 exports.delete = (id, callback) => {
