@@ -27,17 +27,35 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  fs.readdir(this.dataDir, function(err, files) {
-    if (err) {
-      console.log('Unable to read file directory');
-    } else {
-      var data = _.map(files, (id) => { 
-        let newId = id.slice(0, -4);
-        return { 'id': newId, 'text': newId };
-      });
-      callback(null, data);
-    }
+  var readDirectory = new Promise((resolve, reject) => {
+    fs.readdir(this.dataDir, function(err, files) {
+      if (err) {
+        reject('Unable to read file directory');
+      }
+      resolve(files);
+    });
   });
+  
+  // Promisifiy???? fs.readdir()
+  // resolves -> return an array
+  return readDirectory
+    .then((files) => {
+      // set new array of promises by mapping through directory
+      let filePromises = files.map((file) => {
+        return new Promise((resolve, reject) => {
+          // readfile/readone, should return an obj {id, text} per read
+          fs.readFile(path.join(this.dataDir, file), 'utf8', (err, data) => {
+            if (err) { reject(`File ${file} was not read.`); }
+            let newId = file.slice(0, -4);
+            resolve({'id': newId, 'text': data});
+          });
+        });
+      });
+      return filePromises;
+    })
+    .then((arrayOfPromises) => { 
+      return Promise.all(arrayOfPromises).then((fulfilled) => callback(null, fulfilled));
+    });
 };
 
 exports.readOne = (id, callback) => {
